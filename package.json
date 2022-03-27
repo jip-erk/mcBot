@@ -1,0 +1,25 @@
+{
+    "name": "mcbot2",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon start"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "ejs": "^3.1.6",
+        "express": "^4.17.3",
+        "jsdom": "^19.0.0",
+        "mineflayer": "^4.2.0",
+        "mineflayer-armor-manager": "^1.4.2",
+        "mineflayer-auto-eat": "^2.3.3",
+        "mineflayer-pathfinder": "^2.0.0",
+        "mineflayer-pvp": "^1.2.1",
+        "mineflayer-web-inventory": "^1.7.1",
+        "nodemon": "^2.0.15",
+        "socket.io": "^4.4.1"
+    }
+}

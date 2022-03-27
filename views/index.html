@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <link rel="stylesheet" media="screen" href="https://fontlibrary.org//face/minecraftia" type="text/css" />
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="skin">
+            <p id="name"></p>
+            <img class="icon" src="img/hearth.png">
+            <a id="health"></a>
+            <img class="icon" src="img/hunger.png">
+            <a id="hunger"></a>
+            <img id="img" src="https://minotar.net/armor/body/">
+        </div>
+
+        <div class="buttons">
+            <button onclick="Follow()">follow</button>
+            <button onclick="Stop()">stop</button>
+        </div>
+
+        <div class="ToggleContainer">
+            <input type="button" id="1" value="ON" onclick="toggle(this);">
+            <input type="button" id="1" value="ON" onclick="toggle(this);">
+        </div>
+
+        <div class="ChatContainer">
+            <div class="input">
+                <input class="chat" type="text" placeholder="Enter Message">
+                <button class="sent-but">
+                    <img src="img/right-arrow.png">
+                </button>
+            </div>
+        </div>
+
+        <div id="inv" class="containerInv">
+        </div>
+
+        <div class="invButtons">
+            <input type="button" value="Drop" id="1" onclick="drop();">
+        </div>
+    </div>
+
+
+
+
+    <script src="/index.js" type="text/javascript"></script>
+</body>
+
+</html>
