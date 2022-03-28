@@ -26,17 +26,32 @@
         <div class="buttons">
             <button onclick="Follow()">follow</button>
             <button onclick="Stop()">stop</button>
+            <select id="players">
+           
+            </select>
         </div>
 
         <div class="ToggleContainer">
-            <input type="button" id="1" value="ON" onclick="toggle(this);">
-            <input type="button" id="1" value="ON" onclick="toggle(this);">
+
+            <button type="button" id="follow" class="off" onclick="toggle(this);">
+                <img src="img/resistance.png">
+            </button>
+
+
+            <button type="button" id="defend" class="off" onclick="toggle(this);">
+                <img src="img/resistance.png">
+            </button>
+
+            <button type="button" id="kill" class="off" onclick="toggle(this);">
+                <img src="img/resistance.png">
+            </button>
+
         </div>
 
         <div class="ChatContainer">
             <div class="input">
-                <input class="chat" type="text" placeholder="Enter Message">
-                <button class="sent-but">
+                <input id="chatInput" class="chat" type="text" placeholder="Enter Message">
+                <button class="sent-but" onclick="sendmessage();">
                     <img src="img/right-arrow.png">
                 </button>
             </div>
@@ -47,6 +62,7 @@
 
         <div class="invButtons">
             <input type="button" value="Drop" id="1" onclick="drop();">
+            <input type="button" value="chestDrop" id="1" onclick="chestdrop();">
         </div>
     </div>
 

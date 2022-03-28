@@ -5,12 +5,43 @@ let dropList = [];
 
 var Inv;
 
-function toggle(button) {
-    if (document.getElementById("1").value == "OFF") {
-        document.getElementById("1").value = "ON";
-    } else if (document.getElementById("1").value == "ON") {
-        document.getElementById("1").value = "OFF";
+function toggle(but) {
+    //   if (document.getElementById("follow").value == "OFF") {
+    //       document.getElementById("follow").value = "ON";
+    //   } else if (document.getElementById("follow").value == "ON") {
+    //      document.getElementById("follow").value = "OFF";
+    //  }
+    if (but.classList.contains('off') && but.id == 'follow') {
+        Follow();
+
+
+    } else {
+        Stop();
     }
+
+    if (but.classList.contains('off') && but.id == 'defend') {
+        var off = true;
+
+        socket.emit('defend', off);
+    } else {
+        var on = false;
+        socket.emit('defend', on);
+    }
+
+    if (but.classList.contains('off') && but.id == 'kill') {
+        var off = true;
+        var player = document.getElementById('players').value;
+        socket.emit('kill', off, player);
+    } else {
+        var on = false;
+        var player = document.getElementById('players').value;
+        socket.emit('kill', on, player);
+    }
+
+    const toggleClass = (el, className) => el.classList.toggle(className);
+    toggleClass(but, 'off');
+    //document.getElementById('follow').classList.toggle('off');
+    // document.getElementById('defend').classList.toggle('off');
 }
 
 
@@ -65,15 +96,20 @@ function invSlot(but) {
     toggleClass(but, 'border');
 
     // dropList.push(but.id);
-    dropitem = but.name;
+    //  dropitem = but.name;
     dropitemcount = but.id;
 };
 
 const drop = () => {
-    socket.emit('drop', dropitem, dropitemcount);
-    console.log(dropitem);
+    socket.emit('drop', dropitemcount);
+    document.getElementById(dropitemcount).classList.toggle('border');
 }
 
+
+const chestdrop = () => {
+    socket.emit('chestdrop', dropitemcount);
+    document.getElementById(dropitemcount).classList.toggle('border');
+}
 
 socket.on('health', (data) => {
     document.getElementById('health').textContent = Math.round(data);
@@ -88,10 +124,44 @@ socket.on('name', (data) => {
     document.getElementById('img').src = 'https://minotar.net/armor/body/' + data;
 })
 
+var playerList = [];
+socket.on('players', (data) => {
+    // var arr = JSON.parse(data);
+    // console.log(data['tigy']);
+
+    for (let i = 0; i < data.length; i++) {
+        if (!playerList.includes(data[i])) {
+            playerList.push(data[i])
+            document.getElementById('players').innerHTML += `<option value="${data[i]}">${data[i]}</option>`;
+        }
+
+
+        //  document.getElementById('players').innerHTML += `<option value="${data[i].username}">${data[i].username}</option>`;
+        //console.log(data[i].username);
+    }
+
+    if (playerList.length != data.length) {
+        document.getElementById('players').innerHTML = null;
+        playerList = [];
+
+    }
+
+
+})
+
 const Follow = () => {
-    socket.emit('follow', 'follow')
+    var player = document.getElementById('players').value;
+    socket.emit('follow', player);
 }
 
 const Stop = () => {
     socket.emit('stop', 'stop')
+}
+
+
+const sendmessage = () => {
+    var input = document.getElementById('chatInput').value;
+    socket.emit('sendmessage', input);
+    document.getElementById('chatInput').value = null;
+    console.log(input);
 }

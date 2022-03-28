@@ -43,11 +43,10 @@ body {
 }
 
 .ToggleContainer {
-    background-color: var(--main);
     width: 590px;
     height: 90px;
     position: absolute;
-    left: 50%;
+    left: 49%;
     top: 110%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
@@ -144,6 +143,25 @@ a {
     font-style: normal;
 }
 
+select {
+    border: none;
+    width: 200px;
+    outline: none;
+    height: 30px;
+    background-color: var(--main);
+    border-radius: 10px;
+    margin: 20px;
+    color: var(--text);
+    padding-left: 10px;
+}
+
+option {
+    background-color: var(--main);
+    border: none;
+    border-radius: 10px;
+    margin: 5px;
+}
+
 .buttons button {
     padding: 10px;
     background-color: var(--main);
@@ -184,13 +202,14 @@ button:hover {
     border-radius: 20px;
 }
 
-.ToggleContainer input {
+.ToggleContainer button {
     height: 100%;
     width: 90px;
-    background-color: var(--main-light-offset);
+    background-color: var(--border);
     border: none;
     outline: none;
     border-radius: 20px;
+    margin-left: 10px;
 }
 
 .input {
@@ -214,6 +233,9 @@ button:hover {
     font-family: 'Minecraft', sans-serif;
     font-family: 'MinecraftiaRegular';
     font-size: 16px;
+    outline: none;
+    border: none;
+    background-color: var(--main-light-offset);
 }
 
 .sent-but {
@@ -222,9 +244,28 @@ button:hover {
     background-color: var(--main-light-offset);
     border-radius: 50%;
     margin: 0;
+    border: none;
 }
 
 .sent-but img {
     width: 100%;
     height: 100%;
+}
+
+.off {
+    /* 
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 0;
+    bottom: 0;
+    left: 5px;
+    background-image: url('img/cross.png');
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    background-size: 80px;
+    */
+    background-color: var(--main) !important;
 }
