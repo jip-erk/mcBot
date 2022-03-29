@@ -3,6 +3,7 @@ const { pathfinder, Movements, goals } = require('mineflayer-pathfinder')
 const pvp = require('mineflayer-pvp').plugin;
 const GoalFollow = goals.GoalFollow
 const GoalBlock = goals.GoalBlock
+const GoalNear = goals.GoalNear
 const armorManager = require('mineflayer-armor-manager')
 const readline = require('readline');
 const autoeat = require("mineflayer-auto-eat")
@@ -30,15 +31,16 @@ app.get('/', (req, res) => {
 
 
 server.listen(3001, () => {
-    console.log("server running...")
+    console.log(`server running at http://localhost:3001`)
 })
-var chestitem;
+var chestitem = [];
 var i;
 var onOff = false;
 var pvpOnOff = false;
 var playerTokill;
 var playerToFollow;
-
+var cords;
+var isCordWalk;
 
 io.on("connection", (socket) => {
     if (interval) {
@@ -46,6 +48,18 @@ io.on("connection", (socket) => {
     }
     interval = setInterval(() => getApiAndEmit(socket), 500);
 
+    //movecords
+
+    socket.on('moveToCords', (data) => {
+        isCordWalk = true;
+        cords = data;
+        MoveCords();
+    });
+    socket.on('StopMoveToCords', (data) => {
+        isCordWalk = false;
+        clearInterval(pickaxeInt);
+        bot.pathfinder.setGoal(null);
+    });
 
     //on defend
     socket.on('defend', (data) => {
@@ -66,12 +80,15 @@ io.on("connection", (socket) => {
     socket.on('follow', (data) => {
         // isfollowing = true;
         //findplayers(data);
+        canFollow = true;
         playerToFollow = data;
         findplayers();
     });
 
     socket.on('stop', (data) => {
         //   isfollowing = false;
+
+        canFollow = false;
         bot.pathfinder.setGoal(null);
 
     });
@@ -85,26 +102,35 @@ io.on("connection", (socket) => {
     socket.on('drop', (data) => {
 
         const itemss = bot.inventory.items();
-        var dropitem;
+        var dropitems = [];
+
         for (let i = 0; i < itemss.length; i++) {
-            if (itemss[i].slot == data) {
-                dropitem = itemss[i];
+            for (let j = 0; j < data.length; j++) {
+                if (data[j] == itemss[i].slot) {
+
+                    // bot.tossStack(itemss[i], test);
+                    dropitems.push(itemss[i]);
+                }
             }
         }
-        // console.log(bot.inventory.items());
-        // console.log(item, val);
-        bot.tossStack(dropitem, test);
-        //test();
+
+        tossItems(dropitems);
+
     });
 
 
     socket.on('chestdrop', (data) => {
 
         const itemss = bot.inventory.items();
-        var dropitem;
+        var dropitems = [];
+
         for (let i = 0; i < itemss.length; i++) {
-            if (itemss[i].slot == data) {
-                dropitem = itemss[i];
+            for (let j = 0; j < data.length; j++) {
+                if (data[j] == itemss[i].slot) {
+
+                    // bot.tossStack(itemss[i], test);
+                    dropitems.push(itemss[i]);
+                }
             }
         }
         // console.log(bot.inventory.items());
@@ -112,7 +138,7 @@ io.on("connection", (socket) => {
         //  bot.tossStack(dropitem, test);
         depositLoop();
         //test();
-        chestitem = dropitem;
+        chestitem = dropitems;
     });
 
 
@@ -148,12 +174,6 @@ const getApiAndEmit = socket => {
     socket.emit("players", players);
 
 };
-
-
-
-
-
-
 
 
 
@@ -243,7 +263,7 @@ function chat() {
 
             chat();
         } else if (userInput === '!cords') {
-            console.log(bot.entity.position);
+            // console.log(bot.entity.position);
             chat();
 
         } else {
@@ -294,6 +314,7 @@ bot.on('physicTick', () => {
     //function hand (){bot.unequip('hand')}
 
 
+
 function defend() {
 
     if (!onOff) return;
@@ -301,15 +322,20 @@ function defend() {
     const entity = bot.nearestEntity(filter)
     if (entity) {
 
-        const sword = bot.inventory.items().find(item => item.name.includes('sword'))
-        if (sword) bot.equip(sword, 'hand')
+
+        const sword = bot.inventory.items().find(item => item.name.includes('sword'));
+        if (sword) bot.equip(sword, 'hand');
+
 
 
         bot.pvp.attack(entity)
 
-
     } else {
-        findplayers();
+
+        if (canFollow) { findplayers(); }
+        if (isCordWalk) { MoveCords(); }
+
+
     }
     setTimeout(defend, 800);
 }
@@ -362,12 +388,13 @@ function findplayers() {
     }
 
 
-    canFollow = true;
+
 
     const mcData = require('minecraft-data')(bot.version)
     const defaultMove = new Movements(bot, mcData)
 
     defaultMove.canDig = false
+    defaultMove.scafoldingBlocks = []
 
     bot.pathfinder.setMovements(defaultMove)
 
@@ -381,7 +408,46 @@ function findplayers() {
 
 
 }
+var pickaxeInt
 
+function MoveCords() {
+
+
+    if (!cords) return;
+
+
+
+    const pick = bot.inventory.items().find(item => item.name.includes('pickaxe'))
+    if (pick) bot.equip(pick, 'hand')
+
+
+
+
+
+    const mcData = require('minecraft-data')(bot.version)
+    const defaultMove = new Movements(bot, mcData)
+        //defaultMove.blocksToAvoid.add('566')
+
+    defaultMove.canDig = true
+        //defaultMove.blocksCantBreak.add(mcData.blocks['1']);
+
+
+
+
+    bot.pathfinder.setMovements(defaultMove)
+        // bot.pathfinder.setMovements(defaultMove)
+        //console.log(mcData.blocks['826']);
+        //bot.pathfinder.bestHarvestTool(mcData.blocks['1'])
+    const goal = new GoalNear(cords[0].x, cords[0].y, cords[0].z, 1);
+
+    bot.pathfinder.setGoal(goal)
+
+    if (!onOff && isCordWalk) {
+        //  console.log('d');
+        //setTimeout(MoveCords, 5000);
+    }
+
+}
 
 
 bot.once('spawn', chat, )
@@ -434,8 +500,11 @@ async function depositLoop() {
         //          await chest.deposit(slot.type, null, slot.count);
         //      }
         // }
+        for (let i = 0; i < chestitem.length; i++) {
+            await chest.deposit(chestitem[i].type, null, chestitem[i].count);
+        }
+        // await chest.deposit(chestitem.type, null, chestitem.count);
 
-        await chest.deposit(chestitem.type, null, chestitem.count);
         chest.close();
 
         if (canFollow) {
@@ -452,5 +521,11 @@ async function depositLoop() {
         //  bot.lookAt(chestBlock.position);
         //  bot.setControlState('forward', true);
         setTimeout(depositLoop, 500);
+    }
+}
+
+async function tossItems(items) {
+    for (let i = 0; i < items.length; i++) {
+        await bot.tossStack(items[i]);
     }
 }

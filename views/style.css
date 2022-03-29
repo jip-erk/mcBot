@@ -77,7 +77,6 @@ body {
 }
 
 .invButtons {
-    background-color: var(--main);
     width: 540px;
     height: 90px;
     position: absolute;
@@ -95,6 +94,7 @@ body {
     border: none;
     outline: none;
     border-radius: 20px;
+    margin-right: 20px;
 }
 
 .inv a {
@@ -123,6 +123,11 @@ body {
 
 #name {
     margin-top: 28px;
+}
+
+.img {
+    height: auto;
+    width: 40px;
 }
 
 p {
@@ -268,4 +273,32 @@ button:hover {
     background-size: 80px;
     */
     background-color: var(--main) !important;
+}
+
+.cordsCont {
+    background-color: var(--main);
+    height: 20px;
+    width: calc(100% - 40px);
+    margin: 20px;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+.cordsCont a {
+    margin: 0;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.cordsCont input[type="text"] {
+    background-color: var(--main-offset);
+    width: 60px;
+    border: none;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    color: var(--text);
+    padding-left: 9px;
+    border-radius: 5px;
 }

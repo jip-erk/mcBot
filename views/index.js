@@ -11,32 +11,49 @@ function toggle(but) {
     //   } else if (document.getElementById("follow").value == "ON") {
     //      document.getElementById("follow").value = "OFF";
     //  }
+
+    //follow
     if (but.classList.contains('off') && but.id == 'follow') {
         Follow();
-
-
-    } else {
-        Stop();
+    } else if (but.id == 'follow') {
+        console.log('stop');
+        socket.emit('stop', 'stop')
     }
-
+    //defend
     if (but.classList.contains('off') && but.id == 'defend') {
         var off = true;
 
         socket.emit('defend', off);
-    } else {
+    } else if (but.id == 'defend') {
         var on = false;
         socket.emit('defend', on);
     }
 
+    //kill  
     if (but.classList.contains('off') && but.id == 'kill') {
         var off = true;
         var player = document.getElementById('players').value;
         socket.emit('kill', off, player);
-    } else {
+    } else if (but.id == 'kill') {
         var on = false;
         var player = document.getElementById('players').value;
         socket.emit('kill', on, player);
     }
+
+
+    //move to cords
+    var cords = [];
+    //const b = new THREE.Vector3(document.getElementById('x'), document.getElementById('y'), document.getElementById('z'));
+    storeCoordinate(document.getElementById('x').value, document.getElementById('y').value, document.getElementById('z').value, cords);
+
+
+
+    if (but.classList.contains('off') && but.id == 'moveToCords') {
+        socket.emit('moveToCords', cords);
+    } else if (but.id == 'moveToCords') {
+        socket.emit('StopMoveToCords', cords);
+    }
+
 
     const toggleClass = (el, className) => el.classList.toggle(className);
     toggleClass(but, 'off');
@@ -44,6 +61,9 @@ function toggle(but) {
     // document.getElementById('defend').classList.toggle('off');
 }
 
+function storeCoordinate(xVal, yVal, zVal, array) {
+    array.push({ x: xVal, y: yVal, z: zVal });
+}
 
 socket.on('inventory', (data) => {
     // document.getElementById('inv').innerHTML = null;
@@ -90,6 +110,7 @@ for (let i = 9; i < 45; i++) {
 
 var dropitem;
 var dropitemcount;
+var dropItems = [];
 
 function invSlot(but) {
     const toggleClass = (el, className) => el.classList.toggle(className);
@@ -98,17 +119,30 @@ function invSlot(but) {
     // dropList.push(but.id);
     //  dropitem = but.name;
     dropitemcount = but.id;
+    if (!dropItems.includes(but.id)) {
+        dropItems.push(but.id);
+    }
 };
 
 const drop = () => {
-    socket.emit('drop', dropitemcount);
-    document.getElementById(dropitemcount).classList.toggle('border');
+
+
+    socket.emit('drop', dropItems);
+    for (let i = 0; i < dropItems.length; i++) {
+        document.getElementById(dropItems[i]).classList.toggle('border');
+    }
+
+    dropItems = [];
 }
 
 
 const chestdrop = () => {
-    socket.emit('chestdrop', dropitemcount);
-    document.getElementById(dropitemcount).classList.toggle('border');
+    socket.emit('chestdrop', dropItems);
+    for (let i = 0; i < dropItems.length; i++) {
+        document.getElementById(dropItems[i]).classList.toggle('border');
+    }
+
+    dropItems = [];
 }
 
 socket.on('health', (data) => {
@@ -154,9 +188,7 @@ const Follow = () => {
     socket.emit('follow', player);
 }
 
-const Stop = () => {
-    socket.emit('stop', 'stop')
-}
+
 
 
 const sendmessage = () => {

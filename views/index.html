@@ -24,26 +24,34 @@
         </div>
 
         <div class="buttons">
-            <button onclick="Follow()">follow</button>
-            <button onclick="Stop()">stop</button>
-            <select id="players">
-           
-            </select>
+            <select id="players"> </select>
+
+            <div class="cordsCont">
+                <a>X</a>
+                <input id="x" type="text">
+                <a>Y</a>
+                <input id="y" type="text">
+                <a>Z</a>
+                <input id="z" type="text">
+            </div>
         </div>
 
         <div class="ToggleContainer">
 
             <button type="button" id="follow" class="off" onclick="toggle(this);">
-                <img src="img/resistance.png">
+                <img src="img/follow.png">
             </button>
 
-
             <button type="button" id="defend" class="off" onclick="toggle(this);">
-                <img src="img/resistance.png">
+                <img src="img/defence.png">
             </button>
 
             <button type="button" id="kill" class="off" onclick="toggle(this);">
-                <img src="img/resistance.png">
+                <img src="img/kill.png">
+            </button>
+
+            <button type="button" id="moveToCords" class="off" onclick="toggle(this);">
+                <img src="img/cords.png">
             </button>
 
         </div>
