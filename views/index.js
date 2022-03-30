@@ -40,6 +40,9 @@ function toggle(but) {
         socket.emit('kill', on, player);
     }
 
+    if (but.classList.contains('off') && but.id == 'bed') {
+        socket.emit('bed', 'sleep');
+    };
 
     //move to cords
     var cords = [];
@@ -78,23 +81,7 @@ socket.on('inventory', (data) => {
 
         document.getElementById(arr[i].slot).innerHTML = `<img src="/textures/${data[i].name}.png"><a>${data[i].count}</a></img>`;
         document.getElementById(arr[i].slot).name = data[i].name;
-        // document.getElementById(data[i].slot).innerHTML = `<a>${data[i].name}</a>`
-        //   if (data[i] == null) {
-        //    document.getElementById('inv').innerHTML += `<div class='inv'></div>`
-        //    } else {
-
-        //      document.getElementById('inv').innerHTML += `<div class='inv'>${data[i].name}</div>`
-        //      console.log(data[i].slot);
-
-        //  }
-
-        //  if (data[i].slot != null || data[i].slot === i) {
-        //     document.getElementById('inv').innerHTML += `<div class='inv'>${data[i].name}</div>`
-        //      console.log(data[i].slot);
-        //  } else {
-        //      document.getElementById('inv').innerHTML += `<div class='inv'></div>`
-        // }
-
+   
     }
 
 });
@@ -156,6 +143,17 @@ socket.on('name', (data) => {
 
     document.getElementById('name').textContent = data;
     document.getElementById('img').src = 'https://minotar.net/armor/body/' + data;
+})
+
+socket.on('chat', (username, message) => {
+    console.log(username, message);
+    document.getElementById('chatbox').innerHTML += `<div>[${username}] ${message}</div> <br>`;
+})
+
+socket.on('cords', (data) => {
+   document.getElementById('X').textContent = Math.round(data.x);
+   document.getElementById('Y').textContent = Math.round(data.y);
+   document.getElementById('Z').textContent = Math.round(data.z);
 })
 
 var playerList = [];

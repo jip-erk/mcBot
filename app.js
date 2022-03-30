@@ -10,7 +10,6 @@ const autoeat = require("mineflayer-auto-eat")
 
 
 const express = require("express");
-const { consumers } = require('stream');
 const app = express()
 const server = require("http").createServer(app)
 const io = require('socket.io')(server, { cors: { origin: "*" } })
@@ -19,7 +18,7 @@ var mcData;
 
 let interval;
 var canFollow = false;
-
+var botPos;
 
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + '/views'));
@@ -48,6 +47,11 @@ io.on("connection", (socket) => {
     }
     interval = setInterval(() => getApiAndEmit(socket), 500);
 
+
+    bot.on('chat', (username, message) => {
+        
+        socket.emit("chat", username, message);
+     });
     //movecords
 
     socket.on('moveToCords', (data) => {
@@ -91,6 +95,10 @@ io.on("connection", (socket) => {
         canFollow = false;
         bot.pathfinder.setGoal(null);
 
+    });
+
+    socket.on('bed', (data) => {
+        bedSpawnPoint();
     });
 
     socket.on('sendmessage', (data) => {
@@ -172,16 +180,16 @@ const getApiAndEmit = socket => {
     socket.emit("name", bot.username);
     socket.emit("hunger", bot.food);
     socket.emit("players", players);
-
+    socket.emit("cords",botPos);
 };
 
 
 
 //minflayerbot
 const bot = mineflayer.createBot({
-    //host: '51.77.99.151',
-    host: 'localhost',
-    //port: "25565",
+    host: '51.81.151.133',
+    //host: 'localhost',
+    port: "25575",
     //host: 'localhost',
     //port: '63873',
     version: '1.18.2',
@@ -296,7 +304,7 @@ bot.on('physicTick', () => {
         //if(stop === false) findplayers(); bot.chat('ssss')
 
         //findplayers();
-
+     botPos = bot.entity.position;
         // document.getElementById("health").innerHTML == bot.health;
 
         if (bot.health < 20 && bot.food != 20 && !pvpOnOff) {
@@ -314,11 +322,12 @@ bot.on('physicTick', () => {
     //function hand (){bot.unequip('hand')}
 
 
-
+var once = false;
 function defend() {
 
     if (!onOff) return;
 
+    
     const entity = bot.nearestEntity(filter)
     if (entity) {
 
@@ -329,12 +338,15 @@ function defend() {
 
 
         bot.pvp.attack(entity)
-
+        once = false;
     } else {
 
+        if(!once) {
+         
         if (canFollow) { findplayers(); }
         if (isCordWalk) { MoveCords(); }
-
+        once = true;
+        }
 
     }
     setTimeout(defend, 800);
@@ -527,5 +539,53 @@ async function depositLoop() {
 async function tossItems(items) {
     for (let i = 0; i < items.length; i++) {
         await bot.tossStack(items[i]);
+    }
+}
+
+async function bedSpawnPoint(){
+    let bed = bot.findBlock({
+        matching: mcData.blocksByName['white_bed'].id,
+    });
+
+    if (!bed) {
+        return;
+    }
+
+    const defaultMove = new Movements(bot, mcData);
+    defaultMove.canDig = false;
+
+
+    const x = bed.position.x;
+    const y = bed.position.y;
+    const z = bed.position.z;
+
+    const goal = new GoalBlock(x, y, z)
+
+    var isDefending = false
+    if (onOff) isDefending = true;
+
+    onOff = false;
+    if (bot.entity.position.distanceTo(bed.position) < 2) {
+        // bot.setControlState('forward', false);
+        await bot.lookAt(bed.position);
+        
+        bot.sleep(bed);
+    
+       
+
+        if (canFollow) {
+            findplayers();
+        }
+        if (isDefending) {
+            onOff = true;
+            defend();
+        }
+
+    } else {
+
+        bot.pathfinder.setGoal(goal);
+        //  bot.lookAt(chestBlock.position);
+        //  bot.setControlState('forward', true);
+        setTimeout(depositLoop, 500);
     }
 }
