@@ -7,7 +7,7 @@ const GoalNear = goals.GoalNear
 const armorManager = require('mineflayer-armor-manager')
 const readline = require('readline');
 const autoeat = require("mineflayer-auto-eat")
-
+const vec3 = require('vec3');
 
 const express = require("express");
 const app = express()
@@ -19,6 +19,12 @@ var mcData;
 let interval;
 var canFollow = false;
 var botPos;
+
+
+
+var cropType = 'potato'
+var seedName = 'potato';
+var harvestName = 'potatoes';
 
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + '/views'));
@@ -40,6 +46,7 @@ var playerTokill;
 var playerToFollow;
 var cords;
 var isCordWalk;
+var canFarm = false;
 
 io.on("connection", (socket) => {
     if (interval) {
@@ -49,9 +56,21 @@ io.on("connection", (socket) => {
 
 
     bot.on('chat', (username, message) => {
-        
+
         socket.emit("chat", username, message);
-     });
+    });
+    //farm
+
+    socket.on('farm', (data) => {
+        canFarm = true;
+        cosmicLooper();
+    });
+    socket.on('farmStop', (data) => {
+        canFarm = false;
+        bot.setControlState('forward', false);
+    });
+
+
     //movecords
 
     socket.on('moveToCords', (data) => {
@@ -180,25 +199,28 @@ const getApiAndEmit = socket => {
     socket.emit("name", bot.username);
     socket.emit("hunger", bot.food);
     socket.emit("players", players);
-    socket.emit("cords",botPos);
+    socket.emit("cords", botPos);
 };
 
 
 
 //minflayerbot
 const bot = mineflayer.createBot({
-    host: '51.81.151.133',
-    //host: 'localhost',
-    port: "25575",
+    //  host: '51.81.151.133',
+    host: 'localhost',
+    //  port: "25575",
     //host: 'localhost',
     //port: '63873',
     version: '1.18.2',
-    //   username: 'erkelensjip@gmail.com',
+    //username: 'erkelensjip@gmail.com',
     //   password: '!lego20044',
     //password: 'Baszus888',       
     auth: 'microsoft'
 })
 
+var bedPosition;
+var chestPosition;
+var mcData;
 
 
 bot.loadPlugin(pathfinder)
@@ -304,7 +326,7 @@ bot.on('physicTick', () => {
         //if(stop === false) findplayers(); bot.chat('ssss')
 
         //findplayers();
-     botPos = bot.entity.position;
+        botPos = bot.entity.position;
         // document.getElementById("health").innerHTML == bot.health;
 
         if (bot.health < 20 && bot.food != 20 && !pvpOnOff) {
@@ -323,11 +345,12 @@ bot.on('physicTick', () => {
 
 
 var once = false;
+
 function defend() {
 
     if (!onOff) return;
 
-    
+
     const entity = bot.nearestEntity(filter)
     if (entity) {
 
@@ -341,11 +364,11 @@ function defend() {
         once = false;
     } else {
 
-        if(!once) {
-         
-        if (canFollow) { findplayers(); }
-        if (isCordWalk) { MoveCords(); }
-        once = true;
+        if (!once) {
+
+            if (canFollow) { findplayers(); }
+            if (isCordWalk) { MoveCords(); }
+            once = true;
         }
 
     }
@@ -542,7 +565,7 @@ async function tossItems(items) {
     }
 }
 
-async function bedSpawnPoint(){
+async function bedSpawnPoint() {
     let bed = bot.findBlock({
         matching: mcData.blocksByName['white_bed'].id,
     });
@@ -568,10 +591,10 @@ async function bedSpawnPoint(){
     if (bot.entity.position.distanceTo(bed.position) < 2) {
         // bot.setControlState('forward', false);
         await bot.lookAt(bed.position);
-        
+
         bot.sleep(bed);
-    
-       
+
+
 
         if (canFollow) {
             findplayers();
@@ -588,4 +611,81 @@ async function bedSpawnPoint(){
         //  bot.setControlState('forward', true);
         setTimeout(depositLoop, 500);
     }
+}
+
+
+
+//farming
+
+bot.once('spawn', () => {
+    mcData = require('minecraft-data')(bot.version);
+});
+
+async function cosmicLooper() {
+    if (!canFarm) return;
+    // if (bot.time.timeOfDay > 12000) await sleepLoop();
+    if (bot.inventory.slots.filter(v => v == null).length < 11) {
+        await depositLoop();
+    } else await farmLoop();
+
+    setTimeout(cosmicLooper, 20);
+}
+
+
+async function depositLoop() {
+    let chestBlock = bot.findBlock({
+        matching: mcData.blocksByName['chest'].id,
+    });
+
+    if (!chestBlock) return;
+
+    if (bot.entity.position.distanceTo(chestBlock.position) < 2) {
+        bot.setControlState('forward', false);
+
+        let chest = await bot.openChest(chestBlock);
+
+        for (slot of bot.inventory.slots) {
+            if (slot && slot.name == seedName) {
+                await chest.deposit(slot.type, null, slot.count);
+            }
+        }
+        chest.close();
+    } else {
+        bot.lookAt(chestBlock.position);
+        bot.setControlState('forward', true);
+    }
+}
+
+async function farmLoop() {
+    let harvest = readyCrop();
+
+    if (harvest) {
+        bot.lookAt(harvest.position);
+        try {
+            if (bot.entity.position.distanceTo(harvest.position) < 2) {
+                bot.setControlState('forward', false);
+
+                await bot.dig(harvest);
+                if (!bot.heldItem || bot.heldItem.name != seedName) await bot.equip(mcData.itemsByName[seedName].id);
+
+                let dirt = bot.blockAt(harvest.position.offset(0, -1, 0));
+                if (!dirt) {
+                    return;
+                }
+                await bot.placeBlock(dirt, vec3(0, 1, 0));
+            } else {
+                bot.setControlState('forward', true);
+            }
+        } catch (err) {
+            // console.log(err);
+        }
+    }
+}
+
+function readyCrop() {
+    return bot.findBlock({
+        matching: (blk) => {
+            return (blk.name == harvestName && blk.metadata == 7);
+        }
+    });
 }

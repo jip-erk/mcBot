@@ -44,6 +44,12 @@ function toggle(but) {
         socket.emit('bed', 'sleep');
     };
 
+    if (but.classList.contains('off') && but.id == 'farm') {
+        socket.emit('farm', 'farm');
+    } else if (but.id == 'farm') {
+        socket.emit('farmStop', 'farm');
+    }
+
     //move to cords
     var cords = [];
     //const b = new THREE.Vector3(document.getElementById('x'), document.getElementById('y'), document.getElementById('z'));
@@ -81,7 +87,7 @@ socket.on('inventory', (data) => {
 
         document.getElementById(arr[i].slot).innerHTML = `<img src="/textures/${data[i].name}.png"><a>${data[i].count}</a></img>`;
         document.getElementById(arr[i].slot).name = data[i].name;
-   
+
     }
 
 });
@@ -151,9 +157,9 @@ socket.on('chat', (username, message) => {
 })
 
 socket.on('cords', (data) => {
-   document.getElementById('X').textContent = Math.round(data.x);
-   document.getElementById('Y').textContent = Math.round(data.y);
-   document.getElementById('Z').textContent = Math.round(data.z);
+    document.getElementById('X').textContent = Math.round(data.x);
+    document.getElementById('Y').textContent = Math.round(data.y);
+    document.getElementById('Z').textContent = Math.round(data.z);
 })
 
 var playerList = [];
